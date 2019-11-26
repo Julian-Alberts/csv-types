@@ -2,7 +2,18 @@ pub mod types;
 use csv;
 use std::thread;
 
-pub fn get_types(csv: &str, type_list: types::TypeList, has_headers: bool, max_threads: usize) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Box<dyn std::any::Any + std::marker::Send>> {
+pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Err> {
+    
+    let has_headers = options.has_headers;
+    let max_threads = if let Some(threads) = options.max_threads {
+        if threads < 1 {
+            return Err(Err::ThreadCount);
+        }
+        threads
+    } else {
+        1
+    };
+    
     let mut csv = parse_csv(csv);
 
     let headers = if has_headers {
@@ -32,7 +43,10 @@ pub fn get_types(csv: &str, type_list: types::TypeList, has_headers: bool, max_t
     }
     let mut col_types = Vec::new();
     for handler in join_heandlers {
-        let col_type_cols = handler.join()?;
+        let col_type_cols = match handler.join() {
+            Ok(ctc) => ctc,
+            Err(_) => return Err(Err::Join)
+        };
         for col_type_col in col_type_cols {
             col_types.push(col_type_col);
         }
@@ -100,9 +114,87 @@ fn flip_vec(vec: &[Vec<String>]) -> Vec<Vec<String>> {
     return fliped_vec;
 }
 
+pub struct Options {
+    pub has_headers: bool,
+    pub max_threads: Option<usize>
+}
+
+pub enum Err {
+    Join,
+    ThreadCount
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn get_types_get_types() {
+        let type1 = types::Type::new("T1", "^1$");
+        let type2 = types::Type::new("T2", "^2$");
+        let typed = types::Type::new("Td", r"^\d$");
+        let types = types::TypeList::from(vec!(type1.clone(), type2.clone(), typed.clone()));
+        let ret = match get_types(
+            "1,2,2,1\n2,2,1,1\n3,2,2,1", types, Options {has_headers: false,max_threads: Some(1)}) {
+            Ok(e) => e,
+            Err(_) => {
+                assert!(false);
+                return;
+            }
+        };
+        let expected = (
+            vec!(), 
+            vec!(
+                vec!(typed.clone()),
+                vec!(type2.clone(), typed.clone()),
+                vec!(typed.clone()),
+                vec!(type1.clone(), typed.clone())
+            )
+        );
+        assert_eq!(expected, ret);
+    }
+
+    #[test]
+    fn get_types_get_types_multi_threads() {
+        let type1 = types::Type::new("T1", "^1$");
+        let type2 = types::Type::new("T2", "^2$");
+        let typed = types::Type::new("Td", r"^\d$");
+        let types = types::TypeList::from(vec!(type1.clone(), type2.clone(), typed.clone()));
+        let ret = match get_types(
+            "1,2,2,1\n2,2,1,1\n3,2,2,1", types, Options {has_headers: false,max_threads: Some(2)}) {
+            Ok(e) => e,
+            Err(_) => {
+                assert!(false);
+                return;
+            }
+        };
+        let expected = (
+            vec!(), 
+            vec!(
+                vec!(typed.clone()),
+                vec!(type2.clone(), typed.clone()),
+                vec!(typed.clone()),
+                vec!(type1.clone(), typed.clone())
+            )
+        );
+        assert_eq!(expected, ret);
+    }
+    
+    #[test]
+    fn get_types_thread_count_error() {
+        let type_def = types::Type::new("test", "^.*$");
+        let types = types::TypeList::from(vec!(type_def.clone()));
+        match get_types("", types, Options {
+            has_headers: false,
+            max_threads: Some(0)
+        }) {
+            Ok(_) => assert!(false),
+            Err(e) => match e {
+                Err::ThreadCount => assert!(true),
+                _ => assert!(false)
+            }
+        };
+    }
 
     #[test]
     fn parse_csv_one_line() {

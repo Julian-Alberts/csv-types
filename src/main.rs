@@ -1,25 +1,36 @@
 use std::{io, io::prelude::*};
 use csvtypes;
 use csvtypes::types;
-use argparse::{ArgumentParser, StoreTrue, Store};
+use argparse::{ArgumentParser, StoreTrue, StoreOption, Store};
 use std::fs;
 use std::process;
 
 fn main() {
     let mut print_to_table = false;
     let mut config_file = String::new();
-    let mut header = false;
-    let mut max_threads = 4;
-    setup_args(&mut print_to_table, &mut config_file, &mut header, &mut max_threads);
+    
+    let mut options = csvtypes::Options {
+        has_headers: false,
+        max_threads: None
+    };
+
+    setup_args(&mut print_to_table, &mut config_file, &mut options);
 
     let config = get_config(&config_file);
     let type_list = types::TypeList::from(config);
 
     let input = read_input_from_stdin();
-    let (mut headers, mut types) = match csvtypes::get_types(&input[..], type_list, header, max_threads) {
+    let (mut headers, mut types) = match csvtypes::get_types(&input[..], type_list, options) {
         Ok(r) => r,
-        Err(_) => {
-            eprintln!("Could not determin types");
+        Err(err) => {
+            match err {
+                csvtypes::Err::Join => {
+                    eprintln!("Could not join threads.");
+                },
+                csvtypes::Err::ThreadCount => {
+                    eprintln!("The thread count needs to be bigger than 0")
+                }
+            }
             process::exit(1);
         }
     };
@@ -82,16 +93,16 @@ fn display_types(types: &mut Vec<Vec<types::Type>>, headers: &mut Vec<String>) {
     }
 }
 
-fn setup_args(print_to_table: &mut bool, config_file: &mut String, header: &mut bool, max_threads: &mut usize) {
+fn setup_args(print_to_table: &mut bool, config_file: &mut String, options: &mut csvtypes::Options) {
     let mut ap = ArgumentParser::new();
     ap.refer(print_to_table)
     .add_option(&["-h", "--human-readable"], StoreTrue, "print in table");
-    ap.refer(header)
+    ap.refer(&mut options.has_headers)
     .add_option(&["--header"], StoreTrue, "File has header");
     ap.refer(config_file)
     .add_option(&["-c", "--config-file"], Store, "custom config file path");
-    ap.refer(max_threads)
-    .add_option(&["--max-threads"], Store, "");
+    ap.refer(&mut options.max_threads)
+    .add_option(&["--max-threads"], StoreOption, "");
     ap.parse_args_or_exit();
 }
 
