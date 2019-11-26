@@ -15,7 +15,13 @@ fn main() {
     let type_list = types::TypeList::from(config);
 
     let input = read_input_from_stdin();
-    let (mut headers, mut types) = csvtypes::get_types(&input[..], type_list, header);
+    let (mut headers, mut types) = match csvtypes::get_types(&input[..], type_list, header) {
+        Ok(r) => r,
+        Err(_) => {
+            eprintln!("Could not determin types");
+            process::exit(1);
+        }
+    };
     display_types(&mut types, &mut headers);
 }
 
