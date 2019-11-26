@@ -2,7 +2,7 @@ pub mod types;
 use csv;
 use std::thread;
 
-pub fn get_types(csv: &str, type_list: types::TypeList, has_headers: bool) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Box<dyn std::any::Any + std::marker::Send>> {
+pub fn get_types(csv: &str, type_list: types::TypeList, has_headers: bool, max_threads: usize) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Box<dyn std::any::Any + std::marker::Send>> {
     let mut csv = parse_csv(csv);
 
     let headers = if has_headers {
@@ -16,7 +16,7 @@ pub fn get_types(csv: &str, type_list: types::TypeList, has_headers: bool) -> Re
     }
 
     let fliped_csv = flip_vec(&csv);
-    let col_sets = split_vec_equal(fliped_csv, 3);//TODO Add max_thread
+    let col_sets = split_vec_equal(fliped_csv, max_threads);
 
     let mut join_heandlers = Vec::new();
     for col_set in col_sets {

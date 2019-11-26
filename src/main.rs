@@ -9,13 +9,14 @@ fn main() {
     let mut print_to_table = false;
     let mut config_file = String::new();
     let mut header = false;
-    setup_args(&mut print_to_table, &mut config_file, &mut header);
+    let mut max_threads = 4;
+    setup_args(&mut print_to_table, &mut config_file, &mut header, &mut max_threads);
 
     let config = get_config(&config_file);
     let type_list = types::TypeList::from(config);
 
     let input = read_input_from_stdin();
-    let (mut headers, mut types) = match csvtypes::get_types(&input[..], type_list, header) {
+    let (mut headers, mut types) = match csvtypes::get_types(&input[..], type_list, header, max_threads) {
         Ok(r) => r,
         Err(_) => {
             eprintln!("Could not determin types");
@@ -81,7 +82,7 @@ fn display_types(types: &mut Vec<Vec<types::Type>>, headers: &mut Vec<String>) {
     }
 }
 
-fn setup_args(print_to_table: &mut bool, config_file: &mut String, header: &mut bool) {
+fn setup_args(print_to_table: &mut bool, config_file: &mut String, header: &mut bool, max_threads: &mut usize) {
     let mut ap = ArgumentParser::new();
     ap.refer(print_to_table)
     .add_option(&["-h", "--human-readable"], StoreTrue, "print in table");
@@ -89,6 +90,8 @@ fn setup_args(print_to_table: &mut bool, config_file: &mut String, header: &mut 
     .add_option(&["--header"], StoreTrue, "File has header");
     ap.refer(config_file)
     .add_option(&["-c", "--config-file"], Store, "custom config file path");
+    ap.refer(max_threads)
+    .add_option(&["--max-threads"], Store, "");
     ap.parse_args_or_exit();
 }
 
