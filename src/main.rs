@@ -6,7 +6,7 @@ use std::fs;
 use std::process;
 
 fn main() {
-    let (print_to_table, config_file, options) = setup_args();
+    let (config_file, options) = setup_args();
 
     let type_list = get_config(config_file);
 
@@ -84,9 +84,8 @@ fn display_types(types: &mut Vec<Vec<types::Type>>, headers: &mut Vec<String>) {
     }
 }
 
-fn setup_args() -> (bool, ConfigFileType, csvtypes::Options) {
+fn setup_args() -> (ConfigFileType, csvtypes::Options) {
     let mut config_file_replace_default = String::new();
-    let mut print_to_table = false;
     let mut config_file = String::new();
     let mut options =  csvtypes::Options {
         has_headers: false,
@@ -94,8 +93,6 @@ fn setup_args() -> (bool, ConfigFileType, csvtypes::Options) {
     };
 
     let mut ap = ArgumentParser::new();
-    ap.refer(&mut print_to_table)
-    .add_option(&["-h", "--human-readable"], StoreTrue, "print in table");
     ap.refer(&mut options.has_headers)
     .add_option(&["--header"], StoreTrue, "File has header");
     ap.refer(&mut config_file)
@@ -121,7 +118,7 @@ fn setup_args() -> (bool, ConfigFileType, csvtypes::Options) {
         ConfigFileType::None
     };
 
-    return (print_to_table, config_file, options);
+    return (config_file, options);
 }
 
 fn get_config(config_file: ConfigFileType) -> types::TypeList {
