@@ -56,7 +56,11 @@ impl TypeList {
     }
 
     pub fn add_type(&mut self, type_config: Type) {
-        self.list.push(type_config.clone());
+        if let None = self.map.get(&type_config.name) {
+            self.list.push(type_config.clone());
+        } else {
+            self.list.retain(|t| t.name != type_config.name);
+        }
         self.map.insert(type_config.name.clone(), type_config.clone());
     }
 
