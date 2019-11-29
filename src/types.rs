@@ -30,10 +30,15 @@ pub fn get_matching_types(column: &[String], type_list: &TypeVec) -> TypeVec {
         }
         true
     });
-
     return type_list;
 }
 
+pub fn check_if_type_matches(value: &str, type_def: &Type) -> bool {
+    let reg = Regex::new(&type_def.pattern).unwrap();
+    reg.is_match(value)
+}
+
+#[derive(PartialEq, Debug)]
 pub struct TypeList {
     map: TypesMap,
     list: TypeVec
@@ -60,6 +65,7 @@ impl TypeList {
             self.list.push(type_config.clone());
         } else {
             self.list.retain(|t| t.name != type_config.name);
+            self.list.push(type_config.clone());
         }
         self.map.insert(type_config.name.clone(), type_config.clone());
     }
@@ -97,6 +103,17 @@ mod tests {
         tl.add_type(Type::new("a", "a"));
         tl.add_type(Type::new("d", "d"));
         let expected = vec!(Type::new("t", "t"), Type::new("a", "a"), Type::new("d", "d"));
+        assert_eq!(&expected, tl.get_types_vec());
+    }
+
+    #[test]
+    fn type_map_to_vec_replace_existing() {
+        let mut tl = TypeList::new();
+        tl.add_type(Type::new("c", "t"));
+        tl.add_type(Type::new("t", "t"));
+        tl.add_type(Type::new("b", "t"));
+        tl.add_type(Type::new("t", "a"));
+        let expected = vec!(Type::new("c", "t"), Type::new("b", "t"), Type::new("t", "a"));
         assert_eq!(&expected, tl.get_types_vec());
     }
 

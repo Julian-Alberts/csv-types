@@ -1,5 +1,6 @@
 pub mod types;
 mod matching_types;
+mod assert_matching_rows;
 mod vec;
 
 pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Err> {
@@ -27,6 +28,28 @@ pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Res
     return Ok((headers, types));
 }
 
+pub fn assert_columns_match(csv: &str, expected_types: Vec<types::Type>, options: Options) -> Result<(Vec<usize>), Err> {
+    let has_headers = options.has_headers;
+    let max_threads = if let Some(threads) = options.max_threads {
+        if threads < 1 {
+            return Err(Err::ThreadCount);
+        }
+        threads
+    } else {
+        1
+    };
+    
+    let mut csv = vec::csv_to_vec(csv);
+
+    if has_headers {
+        get_header(&mut csv);
+    }
+
+    let rows = assert_matching_rows::assert_matching_rows(csv, &expected_types, max_threads)?;
+
+    return Ok(rows);
+}
+
 fn get_header(csv: &mut Vec<Vec<String>>) -> Vec<String> {
     let headers = csv[0].clone();
     csv.remove(0);
@@ -40,7 +63,8 @@ pub struct Options {
 
 pub enum Err {
     Join,
-    ThreadCount
+    ThreadCount,
+    ColumnCountNotMatching
 }
 
 #[cfg(test)]

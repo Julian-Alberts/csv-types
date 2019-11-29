@@ -36,7 +36,7 @@ pub fn flip_vec(vec: &[Vec<String>]) -> Vec<Vec<String>> {
     return fliped_vec;
 }
 
-pub fn split_vec_equal<T: Clone>(vec: Vec<T>, max_threads: usize) -> Vec<Vec<T>> {
+pub fn split_vec_equal<T: Clone>(vec: &Vec<T>, max_threads: usize) -> Vec<Vec<T>> {
     let mut max_threads = max_threads;
     if max_threads == 0 {
         max_threads = 1;
@@ -86,7 +86,7 @@ mod tests {
     fn split_vec_equal_matching_threads() {
         let orig_vec = vec!("a", "b", "c", "d");
 
-        let result = split_vec_equal(orig_vec, 4);
+        let result = split_vec_equal(&orig_vec, 4);
         let expected = vec!(vec!("a"), vec!("b"), vec!("c"), vec!("d"));
         assert_eq!(expected, result)
     }
@@ -95,7 +95,7 @@ mod tests {
     fn split_vec_equal_multiple_per_thread() {
         let orig_vec = vec!("a", "b", "c", "d");
 
-        let result = split_vec_equal(orig_vec, 2);
+        let result = split_vec_equal(&orig_vec, 2);
         let expected = vec!(vec!("a", "b"), vec!("c", "d"));
         assert_eq!(expected, result);
     }
@@ -104,7 +104,7 @@ mod tests {
     fn split_vec_equal_count_not_matching() {
         let orig_vec = vec!("a", "b", "c");
 
-        let result = split_vec_equal(orig_vec, 2);
+        let result = split_vec_equal(&orig_vec, 2);
         let expected = vec!(vec!("a", "b"), vec!("c"));
         assert_eq!(expected, result)
     }
@@ -113,7 +113,7 @@ mod tests {
     fn split_vec_equal_more_threads() {
         let orig_vec = vec!("a", "b", "c");
 
-        let result = split_vec_equal(orig_vec, 4);
+        let result = split_vec_equal(&orig_vec, 4);
         let expected = vec!(vec!("a"), vec!("b"), vec!("c"), vec!());
         assert_eq!(expected, result)
     }

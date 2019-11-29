@@ -6,25 +6,72 @@ use std::fs;
 use std::process;
 
 fn main() {
-    let (config_file, options) = setup_args();
+    let (config_file, asserted_types, options) = setup_args();
 
     let type_list = get_config(config_file);
 
     let input = read_input_from_stdin();
-    let (mut headers, mut types) = match csvtypes::get_types(&input[..], type_list, options) {
-        Ok(r) => r,
+    
+    if let Some(asserted_types) = asserted_types {
+        assert_types(&input, type_list, options, asserted_types);
+    } else {
+        matching_types(&input, type_list, options);
+    }
+
+}
+
+fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Options, asserted_types: String) {
+    let types_map = type_list.get_types_map();
+    let mut expected_types = Vec::new();
+    for type_name in asserted_types.split(",") {
+       
+        let type_name = type_name.trim();
+        let expected = match types_map.get(type_name) {
+            Some(t) => t.clone(),
+            None => {
+                eprintln!("The type {} is not defined", type_name);
+                process::exit(1);
+            }
+        };
+        expected_types.push(expected);
+    }
+    
+    let rows = match csvtypes::assert_columns_match(csv, expected_types, options) {
+        Ok(rows) => rows,
         Err(err) => {
             match err {
-                csvtypes::Err::Join => {
-                    eprintln!("Could not join threads.");
-                },
-                csvtypes::Err::ThreadCount => {
-                    eprintln!("The thread count needs to be bigger than 0")
-                }
+                csvtypes::Err::Join => eprintln!("Could not join threads."),
+                csvtypes::Err::ThreadCount => eprintln!("The thread count needs to be bigger than 0"),
+                csvtypes::Err::ColumnCountNotMatching => eprintln!("The given number of types does not match the number of columns"),
             }
             process::exit(1);
         }
     };
+
+    if rows.len() > 0 {
+        eprintln!("These rows did not match: ");
+        for row in rows {
+            println!("{}", row);
+        }
+    } else {
+        eprintln!("All rows matched");
+    }
+
+}
+
+fn matching_types(input: &str, type_list: types::TypeList, options: csvtypes::Options) {
+    let (mut headers, mut types) = match csvtypes::get_types(input, type_list, options) {
+        Ok(r) => r,
+        Err(err) => {
+            match err {
+                csvtypes::Err::Join => eprintln!("Could not join threads."),
+                csvtypes::Err::ThreadCount => eprintln!("The thread count needs to be bigger than 0"),
+                _ => eprintln!("An unknown Error accoured")
+            }
+            process::exit(1);
+        }
+    };
+
     display_types(&mut types, &mut headers);
 }
 
@@ -84,13 +131,14 @@ fn display_types(types: &mut Vec<Vec<types::Type>>, headers: &mut Vec<String>) {
     }
 }
 
-fn setup_args() -> (ConfigFileType, csvtypes::Options) {
+fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options) {
     let mut config_file_replace_default = String::new();
     let mut config_file = String::new();
     let mut options =  csvtypes::Options {
         has_headers: false,
         max_threads: None
     };
+    let mut assert = None;
 
     let mut ap = ArgumentParser::new();
     ap.refer(&mut options.has_headers)
@@ -101,6 +149,8 @@ fn setup_args() -> (ConfigFileType, csvtypes::Options) {
     .add_option(&["-C", "--config-file-replace-default"], Store, "custom config file path replace default config");
     ap.refer(&mut options.max_threads)
     .add_option(&["--max-threads"], StoreOption, "");
+    ap.refer(&mut assert)
+    .add_option(&["--assert"], StoreOption, "");
     ap.parse_args_or_exit();
     
     drop(ap);
@@ -118,7 +168,7 @@ fn setup_args() -> (ConfigFileType, csvtypes::Options) {
         ConfigFileType::None
     };
 
-    return (config_file, options);
+    return (config_file, assert, options);
 }
 
 fn get_config(config_file: ConfigFileType) -> types::TypeList {
@@ -180,4 +230,35 @@ enum ConfigFileType {
     Append(String),
     ReplaceDefault(String),
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_default_config() {
+        assert_eq!(types::TypeList::from(default_config()), get_config(ConfigFileType::None));
+    }
+
+    #[test]
+    fn get_file_config() {
+        let types = types::TypeList::from(vec!(
+            types::Type {name: String::from("int"), pattern: String::from(r"^\d+$")},
+            types::Type {name: String::from("float"), pattern: String::from(r"^\d+.\d+$")},
+            types::Type {name: String::from("bool"), pattern: String::from("^[yn]$")}
+        ));
+        assert_eq!(types.get_types_vec(), get_config(ConfigFileType::ReplaceDefault(String::from("test_data/config"))).get_types_vec());
+    }
+
+    #[test]
+    fn get_file_config_merge() {
+        let types = types::TypeList::from(vec!(
+            types::Type::new("string", "^.*$"),
+            types::Type::new("int", r"^\d+$"),
+            types::Type::new("float", r"^\d+.\d+$"),
+            types::Type::new("bool", "^[yn]$")
+        ));
+        assert_eq!(types.get_types_vec(), get_config(ConfigFileType::Append(String::from("test_data/config"))).get_types_vec());
+    }
 }

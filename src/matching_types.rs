@@ -6,7 +6,7 @@ use std::thread;
 pub fn get_matching_types(csv: Vec<Vec<String>>, type_list: types::TypeList, max_threads: usize)  -> Result<Vec<Vec<types::Type>>, Err> {  
 
     let fliped_csv = vec::flip_vec(&csv);
-    let col_sets = vec::split_vec_equal(fliped_csv, max_threads);
+    let col_sets = vec::split_vec_equal(&fliped_csv, max_threads);
 
     let col_types = search_types(col_sets, &type_list)?;
 
