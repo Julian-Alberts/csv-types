@@ -14,7 +14,7 @@ impl Type {
     pub fn new(name: &str, pattern: &str) -> Self {
         Self {
             name: name.to_owned(),
-            pattern: pattern.to_owned()
+            pattern: format!("^{}$", pattern)
         }
     }
 }

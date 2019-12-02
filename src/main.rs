@@ -186,9 +186,9 @@ fn get_config(config_file: ConfigFileType) -> types::TypeList {
 
 fn default_config() -> Vec<types::Type> {
     vec!(
-        types::Type::new("string", "^.*$"),
-        types::Type::new("float", r"^[-+]?(?:(?:\d+(?:\.\d*)?)|\.\d+)$"),
-        types::Type::new("int", r"^[-+]?\d+$")
+        types::Type::new("string", ".*"),
+        types::Type::new("float", r"[-+]?(?:(?:\d+(?:\.\d*)?)|\.\d+)"),
+        types::Type::new("int", r"[-+]?\d+")
     )
 }
 
