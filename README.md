@@ -5,6 +5,16 @@ The problem has been to determin which types can be found in each column. For ex
 
 ## Usage
 
+### Parameter
+|short|long|example|description|
+|:-:|:-:|:-:|:-:|
+|-h|--help||Show this help message and exit|
+||--header||File has header|
+|-c|--config-file|config.cfg|Add custom types from file|
+|-C|--config-file-replace-default|config.cfg|Same as --config-file but replaces default config|
+||--max-threads|4|Maximal thread count|
+||--assert|"String,int,float"|Returns not matching rows and columns in pattern [row]:[column]:[column]...|
+
 ### File with out headers
 csv_types < \[csv.file]
 

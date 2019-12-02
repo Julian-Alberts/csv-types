@@ -144,13 +144,13 @@ fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options) {
     ap.refer(&mut options.has_headers)
     .add_option(&["--header"], StoreTrue, "File has header");
     ap.refer(&mut config_file)
-    .add_option(&["-c", "--config-file"], Store, "custom config file path");
+    .add_option(&["-c", "--config-file"], Store, "Add custom types from file");
     ap.refer(&mut config_file_replace_default)
-    .add_option(&["-C", "--config-file-replace-default"], Store, "custom config file path replace default config");
+    .add_option(&["-C", "--config-file-replace-default"], Store, "Same as --config-file but replaces default config");
     ap.refer(&mut options.max_threads)
-    .add_option(&["--max-threads"], StoreOption, "");
+    .add_option(&["--max-threads"], StoreOption, "Maximal thread count");
     ap.refer(&mut assert)
-    .add_option(&["--assert"], StoreOption, "");
+    .add_option(&["--assert"], StoreOption, "Returns not matching rows and columns in pattern [row]:[column]:[column]...");
     ap.parse_args_or_exit();
     
     drop(ap);
