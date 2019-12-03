@@ -48,4 +48,3 @@ csv_types --header < \[csv.file]
 
 ## Planed Features
 - machine readable output
-- overriding existing type definition

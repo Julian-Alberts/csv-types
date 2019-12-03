@@ -3,7 +3,7 @@ use super::Err;
 use super::vec;
 use std::thread;
 
-pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &Vec<types::Type>, max_threads: usize) -> Result<Vec<(usize)>, Err> {
+pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &Vec<types::Type>, max_threads: usize) -> Result<Vec<(usize, Vec<usize>)>, Err> {
     let fliped_csv = vec::flip_vec(&csv);
     
     if fliped_csv.len() != expected_types.len() {
@@ -13,12 +13,12 @@ pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &Vec<types::T
     let col_sets = vec::split_vec_equal(&fliped_csv, max_threads);
     let expected_types = vec::split_vec_equal(expected_types, max_threads);
 
-    let missmatched_rows = check_for_type_match(col_sets, &expected_types);
+    let failed_assertions = check_for_type_match(col_sets, &expected_types);
 
-    return missmatched_rows;
+    return failed_assertions;
 }
 
-fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<types::Type>]) -> Result<Vec<(usize)>, Err> {
+fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<types::Type>]) -> Result<Vec<(usize, Vec<usize>)>, Err> {
     let mut join_heandlers = Vec::new();
     assert!(col_sets.len() == expected_types.len());
 
@@ -33,7 +33,7 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
                     let type_def = &expected_types[col_index];
 
                     if !types::check_if_type_matches(value, type_def) {
-                        missmatched_rows.push(row_index);
+                        missmatched_rows.push((row_index, col_index * col_set_index));
                     }
                 }
                 
@@ -51,7 +51,31 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
             missmatched_rows.push(col_type_col);
         }
     }
-    Ok(missmatched_rows)
+
+    let mut failed_assertions_joined = Vec::new();
+    let mut failed_assertion_index = 0;
+    let mut failed_assertion;
+
+    while failed_assertion_index < missmatched_rows.len() {
+        failed_assertion = match missmatched_rows.get(failed_assertion_index) {
+            Some(a) => a,
+            None => continue
+        };
+        let row = failed_assertion.0;
+        let mut failed_assertion_list = (row, Vec::new());
+        while row == failed_assertion.0 {
+            failed_assertion_list.1.push(failed_assertion.1);
+
+            failed_assertion_index += 1;
+            failed_assertion = match missmatched_rows.get(failed_assertion_index) {
+                Some(a) => a,
+                None => break
+            }
+        }
+        failed_assertions_joined.push(failed_assertion_list);
+    }
+
+    Ok(failed_assertions_joined)
 }
 
 #[cfg(test)]
@@ -124,7 +148,7 @@ mod tests {
         );
 
         match check_for_type_match(col_sets, &expected_types) {
-            Ok(e) => assert_eq!(&[0], &e[..]),
+            Ok(e) => assert_eq!(&[(0, vec!(0))], &e[..]),
             _ => assert!(false)
         };
     }
@@ -144,7 +168,7 @@ mod tests {
         );
 
         match check_for_type_match(col_sets, &expected_types) {
-            Ok(e) => assert_eq!(&[1], &e[..]),
+            Ok(e) => assert_eq!(&[(1, vec!(0))], &e[..]),
             _ => assert!(false)
         };
     }

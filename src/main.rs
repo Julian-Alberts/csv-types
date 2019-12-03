@@ -50,8 +50,12 @@ fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Option
 
     if rows.len() > 0 {
         eprintln!("These rows did not match: ");
-        for row in rows {
-            println!("{}", row);
+        for failed_assertions in rows {
+            print!("{}", failed_assertions.0);
+            for col in failed_assertions.1 {
+                print!(":{}", col);
+            }
+            println!();
         }
     } else {
         eprintln!("All rows matched");
