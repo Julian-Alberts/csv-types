@@ -244,9 +244,9 @@ mod tests {
     #[test]
     fn get_file_config() {
         let types = types::TypeList::from(vec!(
-            types::Type {name: String::from("int"), pattern: String::from(r"^\d+$")},
-            types::Type {name: String::from("float"), pattern: String::from(r"^\d+.\d+$")},
-            types::Type {name: String::from("bool"), pattern: String::from("^[yn]$")}
+            types::Type::new("int", r"\d+"),
+            types::Type::new("float", r"\d+.\d+"),
+            types::Type::new("bool", "[yn]")
         ));
         assert_eq!(types.get_types_vec(), get_config(ConfigFileType::ReplaceDefault(String::from("test_data/config"))).get_types_vec());
     }
@@ -254,10 +254,10 @@ mod tests {
     #[test]
     fn get_file_config_merge() {
         let types = types::TypeList::from(vec!(
-            types::Type::new("string", "^.*$"),
-            types::Type::new("int", r"^\d+$"),
-            types::Type::new("float", r"^\d+.\d+$"),
-            types::Type::new("bool", "^[yn]$")
+            types::Type::new("string", ".*"),
+            types::Type::new("int", r"\d+"),
+            types::Type::new("float", r"\d+.\d+"),
+            types::Type::new("bool", "[yn]")
         ));
         assert_eq!(types.get_types_vec(), get_config(ConfigFileType::Append(String::from("test_data/config"))).get_types_vec());
     }

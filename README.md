@@ -18,6 +18,15 @@ The problem has been to determin which types can be found in each column. For ex
 ### File with out headers
 csv_types < \[csv.file]
 
+### Config File
+Config files can contain new definitions for types
+[type name] [pattern]
+
+#### Example
+```
+float 
+```
+
 
 **Example output:** 
 <pre>
