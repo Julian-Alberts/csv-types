@@ -33,7 +33,12 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
                     let type_def = &expected_types[col_index];
 
                     if !types::check_if_type_matches(value, type_def) {
-                        missmatched_rows.push((row_index, col_index * col_set_index));
+                        let col = if col_set_index == 0 {
+                            col_index
+                        } else {
+                            col_index * col_set_index + col_set_index
+                        };
+                        missmatched_rows.push((row_index, col));
                     }
                 }
                 
@@ -169,6 +174,29 @@ mod tests {
 
         match check_for_type_match(col_sets, &expected_types) {
             Ok(e) => assert_eq!(&[(1, vec!(0))], &e[..]),
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn test() {
+        let col_sets = vec!(
+            vec!(vec!("w".to_owned(), String::from("w"))),
+            vec!(vec!("2".to_owned(), String::from("w"))),
+            vec!(vec!("w".to_owned(), String::from("2")))
+        );
+
+        let expected_types = vec!(
+            vec!(types::Type::new("string", ".*")),
+            vec!(types::Type::new("int", r"\d*")),
+            vec!(types::Type::new("int", r"\d*"))
+        );
+
+        match check_for_type_match(col_sets, &expected_types) {
+            Ok(e) => {
+                assert!(e.contains(&(0, vec!(2))));
+                assert!(e.contains(&(1, vec!(1))));
+            },
             _ => assert!(false)
         };
     }

@@ -61,6 +61,7 @@ pub struct Options {
     pub max_threads: Option<usize>
 }
 
+#[derive(PartialEq, Debug)]
 pub enum Err {
     Join,
     ThreadCount,
