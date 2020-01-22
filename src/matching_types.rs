@@ -17,7 +17,6 @@ fn search_types(col_sets: Vec<Vec<Vec<String>>>, type_list: &types::TypeList) ->
     let mut join_heandlers = Vec::new();
     for col_set in col_sets {
         let type_list = type_list.get_types_vec().clone();
-        let col_set = col_set.clone();
         join_heandlers.push(thread::spawn(move || {
             let mut col_types = Vec::new(); 
             for col in col_set {
