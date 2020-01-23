@@ -4,23 +4,24 @@ use csvtypes::types;
 use argparse::{ArgumentParser, StoreTrue, StoreOption, Store};
 use std::fs;
 use std::process;
+mod print_result;
 
 fn main() {
-    let (config_file, asserted_types, options) = setup_args();
+    let (config_file, asserted_types, options, machine_readable) = setup_args();
 
     let type_list = get_config(config_file);
 
     let input = read_input_from_stdin();
     
     if let Some(asserted_types) = asserted_types {
-        assert_types(&input, type_list, options, asserted_types);
+        assert_types(&input, type_list, options, asserted_types, machine_readable);
     } else {
-        matching_types(&input, type_list, options);
+        matching_types(&input, type_list, options, machine_readable);
     }
 
 }
 
-fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Options, asserted_types: String) {
+fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Options, asserted_types: String, machine_readable: bool) {
     let types_map = type_list.get_types_map();
     let mut expected_types = Vec::new();
     for type_name in asserted_types.split(",") {
@@ -48,23 +49,12 @@ fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Option
         }
     };
 
-    if rows.len() > 0 {
-        eprintln!("These rows did not match: ");
-        for failed_assertions in rows {
-            print!("{}", failed_assertions.0);
-            for col in failed_assertions.1 {
-                print!(":{}", col);
-            }
-            println!();
-        }
-    } else {
-        eprintln!("All rows matched");
-    }
+    print_result::assert_types(&rows[..], machine_readable);
 
 }
 
-fn matching_types(input: &str, type_list: types::TypeList, options: csvtypes::Options) {
-    let (mut headers, mut types) = match csvtypes::get_types(input, type_list, options) {
+fn matching_types(input: &str, type_list: types::TypeList, options: csvtypes::Options, machine_readable: bool) {
+    let (headers, types) = match csvtypes::get_types(input, type_list, options) {
         Ok(r) => r,
         Err(err) => {
             match err {
@@ -76,66 +66,10 @@ fn matching_types(input: &str, type_list: types::TypeList, options: csvtypes::Op
         }
     };
 
-    display_types(&mut types, &mut headers);
+    print_result::matching_types(&types, &headers, machine_readable);
 }
 
-fn display_types(types: &mut Vec<Vec<types::Type>>, headers: &mut Vec<String>) {
-    let mut width = Vec::new();
-    let mut count = Vec::new();
-    let mut max_rows = 0; 
-    for t1 in types.iter() {
-        let mut w = 0;
-        if max_rows < t1.len() {
-            max_rows = t1.len();
-        }
-        count.push(t1.len());
-        for t in t1 {
-            if w < t.name.len() {
-                w = t.name.len();
-            }
-        }
-        width.push(w);
-    }
-
-    for (index, header) in headers.iter_mut().enumerate() {
-        let max_width = width[index];
-        if max_width < header.len() {
-            width[index] = header.len();
-        }
-    }
-
-    if headers.len() > 0 {
-        let mut complete_width = 0;
-        for (col_id, header) in headers.iter_mut().enumerate() {
-            let col_width = match width.get(col_id) {
-                Some(w) => w,
-                None => &(10 as usize)
-            };
-            print!("| {name:>width$} ", width=col_width, name=header);
-            complete_width += 3 + col_width;
-        }
-        println!("|");
-
-        println!("{:=>width$}", "", width=complete_width+1);
-    }
-
-    for row in 0..max_rows {
-        for (col_id, col) in types.iter_mut().enumerate() {
-            let col_width = match width.get(col_id) {
-                Some(w) => w,
-                None => &(10 as usize)
-            };
-            let name = match col.get(row) {
-                Some(t) => &t.name,
-                None => ""
-            };
-            print!("| {name:>width$} ", width=col_width, name=name);
-        }
-        println!("|");
-    }
-}
-
-fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options) {
+fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options, bool) {
     let mut config_file_replace_default = String::new();
     let mut config_file = String::new();
     let mut options =  csvtypes::Options {
@@ -143,6 +77,7 @@ fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options) {
         max_threads: None
     };
     let mut assert = None;
+    let mut machine_readable = false;
 
     let mut ap = ArgumentParser::new();
     ap.refer(&mut options.has_headers)
@@ -155,6 +90,8 @@ fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options) {
     .add_option(&["--max-threads"], StoreOption, "Maximal thread count");
     ap.refer(&mut assert)
     .add_option(&["--assert"], StoreOption, "Returns not matching rows and columns in pattern [row]:[column]:[column]...");
+    ap.refer(&mut machine_readable)
+    .add_option(&["-m"], StoreTrue, "Machine readable format");
     ap.parse_args_or_exit();
     
     drop(ap);
@@ -172,7 +109,7 @@ fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options) {
         ConfigFileType::None
     };
 
-    return (config_file, assert, options);
+    return (config_file, assert, options, machine_readable);
 }
 
 fn get_config(config_file: ConfigFileType) -> types::TypeList {
