@@ -106,9 +106,9 @@ mod tests {
     fn assert_matching_rows_all_matching() {
         let csv = vec!(vec!(String::from("w"),String::from("w"),String::from("1")), vec!(String::from("w"),String::from("w"),String::from("2")));
         let expected_types = vec!(
-            types::Type {name: String::from("str"), pattern: String::from("^.*$")}, 
-            types::Type {name: String::from("str"), pattern: String::from("^.*$")}, 
-            types::Type {name: String::from("str"), pattern: String::from(r"^\d$")}
+            types::Type::new("str", "^.*$"), 
+            types::Type::new("str", "^.*$"), 
+            types::Type::new("str", r"^\d$")
         );
         
         if let Ok(val) = assert_matching_rows(csv, &expected_types, 1) {
@@ -121,15 +121,15 @@ mod tests {
     #[test]
     fn check_for_type_match_all_lines_match() {
         let col_sets = vec!(
-            vec!(vec!("w".to_owned())),
-            vec!(vec!("w".to_owned())),
-            vec!(vec!("w".to_owned()))
+            vec!(vec!(String::from("w"))),
+            vec!(vec!(String::from("w"))),
+            vec!(vec!(String::from("w")))
         );
         
         let expected_types = vec!(
-            vec!(types::Type {name: "".to_owned(), pattern: "^.*$".to_owned()}),
-            vec!(types::Type {name: "".to_owned(), pattern: "^.*$".to_owned()}),
-            vec!(types::Type {name: "".to_owned(), pattern: "^.*$".to_owned()})
+            vec!(types::Type::new("", ".*")),
+            vec!(types::Type::new("", ".*")),
+            vec!(types::Type::new("", ".*"))
         );
 
         match check_for_type_match(col_sets, &expected_types) {
@@ -141,15 +141,15 @@ mod tests {
     #[test]
     fn check_for_type_match_not_first_line() {
         let col_sets = vec!(
-            vec!(vec!("w".to_owned())),
-            vec!(vec!("w".to_owned())),
-            vec!(vec!("w".to_owned()))
+            vec!(vec!(String::from("w"))),
+            vec!(vec!(String::from("w"))),
+            vec!(vec!(String::from("w")))
         );
         
         let expected_types = vec!(
-            vec!(types::Type {name: "".to_owned(), pattern: r"^\d$".to_owned()}),
-            vec!(types::Type {name: "".to_owned(), pattern: "^.*$".to_owned()}),
-            vec!(types::Type {name: "".to_owned(), pattern: "^.*$".to_owned()})
+            vec!(types::Type::new("", r"\d")),
+            vec!(types::Type::new("", ".*")),
+            vec!(types::Type::new("", ".*")),
         );
 
         match check_for_type_match(col_sets, &expected_types) {
@@ -160,16 +160,16 @@ mod tests {
 
     #[test]
     fn check_for_type_match_not_first_second_row() {
-        let col_sets = vec!(
-            vec!(vec!("2".to_owned(), String::from("w"))),
-            vec!(vec!("w".to_owned(), String::from("w"))),
-            vec!(vec!("w".to_owned(), String::from("w")))
-        );
+        let col_sets = vec![
+            vec!(vec![String::from("2"), String::from("w")]),
+            vec!(vec!(String::from("w"), String::from("w"))),
+            vec!(vec!(String::from("w"), String::from("w")))
+        ];
         
         let expected_types = vec!(
-            vec!(types::Type {name: "".to_owned(), pattern: r"^\d$".to_owned()}),
-            vec!(types::Type {name: "".to_owned(), pattern: "^.*$".to_owned()}),
-            vec!(types::Type {name: "".to_owned(), pattern: "^.*$".to_owned()})
+            vec!(types::Type::new("", r"\d")),
+            vec!(types::Type::new("", ".*")),
+            vec!(types::Type::new("", ".*")),
         );
 
         match check_for_type_match(col_sets, &expected_types) {
@@ -181,9 +181,9 @@ mod tests {
     #[test]
     fn test() {
         let col_sets = vec!(
-            vec!(vec!("w".to_owned(), String::from("w"))),
-            vec!(vec!("2".to_owned(), String::from("w"))),
-            vec!(vec!("w".to_owned(), String::from("2")))
+            vec!(vec!(String::from("w"), String::from("w"))),
+            vec!(vec!(String::from("2"), String::from("w"))),
+            vec!(vec!(String::from("w"), String::from("2")))
         );
 
         let expected_types = vec!(
