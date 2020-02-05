@@ -37,3 +37,34 @@ fn search_types(col_sets: Vec<Vec<Vec<String>>>, type_list: &types::TypeList) ->
     }
     Ok(col_types)
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn match_only_strings() {
+        let types = vec![
+            super::types::Type::new("str", ".*"),
+            super::types::Type::new("num", r"\d*"),
+        ];
+        let csv = vec![
+            vec![String::from("W"), String::from("r"), String::from("asd")]
+        ];
+        let result = super::get_matching_types(csv, super::types::TypeList::from(types), 4);
+        assert_eq!(Ok(vec![vec![super::types::Type::new("str", ".*")], vec![super::types::Type::new("str", ".*")], vec![super::types::Type::new("str", ".*")]]), result);
+    }
+
+    #[test]
+    fn match_multiple_types() {
+        let types = vec![
+            super::types::Type::new("str", ".*"),
+            super::types::Type::new("num", r"\d*"),
+        ];
+        let csv = vec![
+            vec![String::from("W"), String::from("r"), String::from("3")]
+        ];
+        let result = super::get_matching_types(csv, super::types::TypeList::from(types), 4);
+        assert_eq!(Ok(vec![vec![super::types::Type::new("str", ".*")], vec![super::types::Type::new("str", ".*")], vec![super::types::Type::new("str", ".*"), super::types::Type::new("num", r"\d*")]]), result);
+    }
+
+}
