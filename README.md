@@ -14,6 +14,7 @@ The problem has been to determin which types can be found in each column. For ex
 |-C|--config-file-replace-default|config.cfg|Same as --config-file but replaces default config|
 ||--max-threads|4|Maximal thread count|
 ||--assert|"String,int,float"|Returns not matching rows and columns in pattern [row]:[column]:[column]...|
+|-m|||Machine readable format|
 
 ### File with out headers
 csv_types < \[csv.file]
@@ -45,6 +46,3 @@ csv_types --header < \[csv.file]
 |  float |        |  float |        |
 |        |        |    int |        |
 </pre>
-
-## Planed Features
-- machine readable output
