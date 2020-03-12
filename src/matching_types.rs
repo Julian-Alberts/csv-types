@@ -10,7 +10,7 @@ pub fn get_matching_types(csv: Vec<Vec<String>>, type_list: types::TypeList, max
 
     let col_types = search_types(col_sets, &type_list)?;
 
-    return Ok(col_types);
+    Ok(col_types)
 }
 
 fn search_types(col_sets: Vec<Vec<Vec<String>>>, type_list: &types::TypeList) -> Result<Vec<Vec<types::Type>>, Err> {
@@ -22,7 +22,7 @@ fn search_types(col_sets: Vec<Vec<Vec<String>>>, type_list: &types::TypeList) ->
             for col in col_set {
                 col_types.push(types::get_matching_types(&col, &type_list))
             }
-            return col_types;
+            col_types
         }));
     }
     let mut col_types = Vec::new();

@@ -19,8 +19,8 @@ impl Type {
     }
 }
 
-pub fn get_matching_types(column: &[String], type_list: &TypeVec) -> TypeVec {
-    let mut type_list = type_list.clone();
+pub fn get_matching_types(column: &[String], type_list: &[Type]) -> TypeVec {
+    let mut type_list = type_list.to_owned();
     type_list.retain(|type_def| {
         let reg = Regex::new(&type_def.pattern).unwrap();
         for value in column.iter() {
@@ -30,7 +30,7 @@ pub fn get_matching_types(column: &[String], type_list: &TypeVec) -> TypeVec {
         }
         true
     });
-    return type_list;
+    type_list
 }
 
 pub fn check_if_type_matches(value: &str, type_def: &Type) -> bool {
@@ -38,7 +38,7 @@ pub fn check_if_type_matches(value: &str, type_def: &Type) -> bool {
     reg.is_match(value)
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Default)]
 pub struct TypeList {
     map: TypesMap,
     list: TypeVec
@@ -57,17 +57,17 @@ impl TypeList {
         for item in list {
             instance.add_type(item);
         }
-        return instance;
+        instance
     }
 
     pub fn add_type(&mut self, type_config: Type) {
-        if let None = self.map.get(&type_config.name) {
+        if self.map.get(&type_config.name).is_none() {
             self.list.push(type_config.clone());
         } else {
             self.list.retain(|t| t.name != type_config.name);
             self.list.push(type_config.clone());
         }
-        self.map.insert(type_config.name.clone(), type_config.clone());
+        self.map.insert(type_config.name.clone(), type_config);
     }
 
     pub fn get_types_vec(&self) -> &TypeVec {

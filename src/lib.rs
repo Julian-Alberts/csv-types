@@ -25,10 +25,10 @@ pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Res
 
     let types = matching_types::get_matching_types(csv, type_list, max_threads)?;
 
-    return Ok((headers, types));
+    Ok((headers, types))
 }
 
-pub fn assert_columns_match(csv: &str, expected_types: Vec<types::Type>, options: Options) -> Result<(Vec<(usize, Vec<usize>)>), Err> {
+pub fn assert_columns_match(csv: &str, expected_types: Vec<types::Type>, options: Options) -> Result<Vec<(usize, Vec<usize>)>, Err> {
     let has_headers = options.has_headers;
     let max_threads = if let Some(threads) = options.max_threads {
         if threads < 1 {
@@ -47,7 +47,7 @@ pub fn assert_columns_match(csv: &str, expected_types: Vec<types::Type>, options
 
     let failed_assertions = assert_matching_rows::assert_matching_rows(csv, &expected_types, max_threads)?;
 
-    return Ok(failed_assertions);
+    Ok(failed_assertions)
 }
 
 fn get_header(csv: &mut Vec<Vec<String>>) -> Vec<String> {

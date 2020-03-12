@@ -1,6 +1,6 @@
 use csvtypes::types;
 
-pub fn matching_types(types: &Vec<Vec<types::Type>>, headers: &Vec<String>, machine_readable: bool) {
+pub fn matching_types(types: &[Vec<types::Type>], headers: &[String], machine_readable: bool) {
     if machine_readable {
         matching_types_machine_readable(types);
     } else {
@@ -8,7 +8,7 @@ pub fn matching_types(types: &Vec<Vec<types::Type>>, headers: &Vec<String>, mach
     }
 }
 
-fn matching_types_human_readable(types: &Vec<Vec<types::Type>>, headers: &Vec<String>) {
+fn matching_types_human_readable(types: &[Vec<types::Type>], headers: &[String]) {
     let mut width = Vec::new();
     let mut count = Vec::new();
     let mut max_rows = 0; 
@@ -33,7 +33,7 @@ fn matching_types_human_readable(types: &Vec<Vec<types::Type>>, headers: &Vec<St
         }
     }
 
-    if headers.len() > 0 {
+    if !headers.is_empty() {
         let mut complete_width = 0;
         for (col_id, header) in headers.iter().enumerate() {
             let col_width = match width.get(col_id) {
@@ -64,12 +64,12 @@ fn matching_types_human_readable(types: &Vec<Vec<types::Type>>, headers: &Vec<St
     }
 }
 
-fn matching_types_machine_readable(types: &Vec<Vec<types::Type>>) {
+fn matching_types_machine_readable(types: &[Vec<types::Type>]) {
     for row in types {
         for t in row {
             print!("{},", t.name);
         }
-        println!("");
+        println!();
     }
 }
 
@@ -82,7 +82,7 @@ pub fn assert_types(rows: &[(usize, Vec<usize>)], machine_readable: bool) {
 }
 
 fn assert_types_human_readable(rows:&[(usize, Vec<usize>)]) {
-    if rows.len() > 0 {
+    if !rows.is_empty() {
         eprintln!("These rows did not match: ");
         for failed_assertions in rows {
             print!("{}", failed_assertions.0);
@@ -97,7 +97,7 @@ fn assert_types_human_readable(rows:&[(usize, Vec<usize>)]) {
 }
 
 fn assert_types_machine_readable(rows:&[(usize, Vec<usize>)]) {
-    if rows.len() > 0 {
+    if !rows.is_empty() {
         for failed_assertions in rows {
             print!("{}", failed_assertions.0);
             for col in &failed_assertions.1 {

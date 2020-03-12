@@ -15,7 +15,7 @@ pub fn csv_to_vec(csv: &str) -> Vec<Vec<String>> {
 
         csv.push(row);
     };
-    return csv;
+    csv
 }
 
 pub fn flip_vec(vec: &[Vec<String>]) -> Vec<Vec<String>> {
@@ -33,10 +33,10 @@ pub fn flip_vec(vec: &[Vec<String>]) -> Vec<Vec<String>> {
             fliped_column.push(row[column_id].clone());
         }
     }
-    return fliped_vec;
+    fliped_vec
 }
 
-pub fn split_vec_equal<T: Clone>(vec: &Vec<T>, max_threads: usize) -> Vec<Vec<T>> {
+pub fn split_vec_equal<T: Clone>(vec: &[T], max_threads: usize) -> Vec<Vec<T>> {
     let mut max_threads = max_threads;
     if max_threads == 0 {
         max_threads = 1;
@@ -54,7 +54,7 @@ pub fn split_vec_equal<T: Clone>(vec: &Vec<T>, max_threads: usize) -> Vec<Vec<T>
 
         splited.push(Vec::from(&vec[start..end]));
     }
-    return splited;
+    splited
 }
 
 #[cfg(test)]

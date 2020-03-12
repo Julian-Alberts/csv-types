@@ -3,7 +3,7 @@ use super::Err;
 use super::vec;
 use std::thread;
 
-pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &Vec<types::Type>, max_threads: usize) -> Result<Vec<(usize, Vec<usize>)>, Err> {
+pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &[types::Type], max_threads: usize) -> Result<Vec<(usize, Vec<usize>)>, Err> {
     let fliped_csv = vec::flip_vec(&csv);
     
     if fliped_csv.len() != expected_types.len() {
@@ -13,9 +13,7 @@ pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &Vec<types::T
     let col_sets = vec::split_vec_equal(&fliped_csv, max_threads);
     let expected_types = vec::split_vec_equal(expected_types, max_threads);
 
-    let failed_assertions = check_for_type_match(col_sets, &expected_types);
-
-    return failed_assertions;
+    check_for_type_match(col_sets, &expected_types)
 }
 
 fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<types::Type>]) -> Result<Vec<(usize, Vec<usize>)>, Err> {
@@ -43,7 +41,7 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
                 }
                 
             }
-            return missmatched_rows;
+            missmatched_rows
         }));
     }
     let mut missmatched_rows = Vec::new();

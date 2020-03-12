@@ -24,7 +24,7 @@ fn main() {
 fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Options, asserted_types: String, machine_readable: bool) {
     let types_map = type_list.get_types_map();
     let mut expected_types = Vec::new();
-    for type_name in asserted_types.split(",") {
+    for type_name in asserted_types.split(',') {
        
         let type_name = type_name.trim();
         let expected = match types_map.get(type_name) {
@@ -109,7 +109,7 @@ fn setup_args() -> (ConfigFileType, Option<String>, csvtypes::Options, bool) {
         ConfigFileType::None
     };
 
-    return (config_file, assert, options, machine_readable);
+    (config_file, assert, options, machine_readable)
 }
 
 fn get_config(config_file: ConfigFileType) -> types::TypeList {
@@ -142,16 +142,16 @@ fn get_config_from_file(config_file: &str) -> Vec<types::Type> {
         }
     };
     let mut list = Vec::new();
-    let lines:Vec<&str> = config_file.split("\n").collect();
+    let lines:Vec<&str> = config_file.split('\n').collect();
      
     for line in lines {
-        let values:Vec<&str> = line.splitn(2, " ").collect();
+        let values:Vec<&str> = line.splitn(2, ' ').collect();
         if values.len() == 2 {
             list.push(types::Type::new(values[0], values[1]));
         }
         
     }
-    return list;
+    list
 }
 
 fn read_input_from_stdin() -> String{
@@ -164,7 +164,7 @@ fn read_input_from_stdin() -> String{
         input.push_str(&line[..]);
         input.push('\n');
     }
-    return input;
+    input
 }
 
 enum ConfigFileType {
