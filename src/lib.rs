@@ -1,14 +1,16 @@
+use std::fmt::Display;
+
 pub mod types;
 mod matching_types;
 mod assert_matching_rows;
 mod vec;
 
-pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Err> {
+pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Error> {
     
     let has_headers = options.has_headers;
     let max_threads = if let Some(threads) = options.max_threads {
         if threads < 1 {
-            return Err(Err::ThreadCount);
+            return Err(Error::ThreadCount);
         }
         threads
     } else {
@@ -28,11 +30,11 @@ pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Res
     Ok((headers, types))
 }
 
-pub fn assert_columns_match(csv: &str, expected_types: Vec<types::Type>, options: Options) -> Result<Vec<(usize, Vec<usize>)>, Err> {
+pub fn assert_columns_match(csv: &str, expected_types: Vec<types::Type>, options: Options) -> Result<Vec<(usize, Vec<usize>)>, Error> {
     let has_headers = options.has_headers;
     let max_threads = if let Some(threads) = options.max_threads {
         if threads < 1 {
-            return Err(Err::ThreadCount);
+            return Err(Error::ThreadCount);
         }
         threads
     } else {
@@ -62,10 +64,24 @@ pub struct Options {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum Err {
+pub enum Error {
     Join,
     ThreadCount,
     ColumnCountNotMatching
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ColumnCountNotMatching => write!(f, "Column count not matching"),
+            Self::Join => write!(f, "Could not join threads"),
+            Self::ThreadCount => write!(f, "Thread smaller then one")
+        }
+    }
+}
+
+impl std::error::Error for Error {
+
 }
 
 #[cfg(test)]
@@ -134,7 +150,7 @@ mod tests {
         }) {
             Ok(_) => assert!(false),
             Err(e) => match e {
-                Err::ThreadCount => assert!(true),
+                Error::ThreadCount => assert!(true),
                 _ => assert!(false)
             }
         };

@@ -1,13 +1,13 @@
 use super::types;
-use super::Err;
+use super::Error;
 use super::vec;
 use std::thread;
 
-pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &[types::Type], max_threads: usize) -> Result<Vec<(usize, Vec<usize>)>, Err> {
+pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &[types::Type], max_threads: usize) -> Result<Vec<(usize, Vec<usize>)>, Error> {
     let fliped_csv = vec::flip_vec(&csv);
     
     if fliped_csv.len() != expected_types.len() {
-        return Err(Err::ColumnCountNotMatching);
+        return Err(Error::ColumnCountNotMatching);
     }
 
     let col_sets = vec::split_vec_equal(&fliped_csv, max_threads);
@@ -16,7 +16,7 @@ pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &[types::Type
     check_for_type_match(col_sets, &expected_types)
 }
 
-fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<types::Type>]) -> Result<Vec<(usize, Vec<usize>)>, Err> {
+fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<types::Type>]) -> Result<Vec<(usize, Vec<usize>)>, Error> {
     let mut join_heandlers = Vec::new();
     assert!(col_sets.len() == expected_types.len());
 
@@ -48,7 +48,7 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
     for handler in join_heandlers {
         let col_type_cols = match handler.join() {
             Ok(ctc) => ctc,
-            Err(_) => return Err(Err::Join)
+            Err(_) => return Err(Error::Join)
         };
         for col_type_col in col_type_cols {
             missmatched_rows.push(col_type_col);
@@ -90,7 +90,7 @@ mod tests {
         let csv = vec!(vec!(), vec!());
         let expected_types = vec!(types::Type {name: String::from(""), pattern: String::from("")});
         assert!(if let Err(err) = assert_matching_rows(csv, &expected_types, 1) {
-            if let Err::ColumnCountNotMatching = err {
+            if let Error::ColumnCountNotMatching = err {
                 true
             } else {
                 false

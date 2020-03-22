@@ -41,9 +41,9 @@ fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Option
         Ok(rows) => rows,
         Err(err) => {
             match err {
-                csvtypes::Err::Join => eprintln!("Could not join threads."),
-                csvtypes::Err::ThreadCount => eprintln!("The thread count needs to be bigger than 0"),
-                csvtypes::Err::ColumnCountNotMatching => eprintln!("The given number of types does not match the number of columns"),
+                csvtypes::Error::Join => eprintln!("Could not join threads."),
+                csvtypes::Error::ThreadCount => eprintln!("The thread count must be bigger than 0"),
+                csvtypes::Error::ColumnCountNotMatching => eprintln!("The given number of types does not match the number of columns"),
             }
             process::exit(1);
         }
@@ -58,8 +58,8 @@ fn matching_types(input: &str, type_list: types::TypeList, options: csvtypes::Op
         Ok(r) => r,
         Err(err) => {
             match err {
-                csvtypes::Err::Join => eprintln!("Could not join threads."),
-                csvtypes::Err::ThreadCount => eprintln!("The thread count needs to be bigger than 0"),
+                csvtypes::Error::Join => eprintln!("Could not join threads."),
+                csvtypes::Error::ThreadCount => eprintln!("The thread count must be bigger than 0"),
                 _ => eprintln!("An unknown Error accoured")
             }
             process::exit(1);
