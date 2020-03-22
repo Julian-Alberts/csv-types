@@ -1,5 +1,9 @@
-pub fn csv_to_vec(csv: &str) -> Vec<Vec<String>> {
-    let mut csv_reader = csv::ReaderBuilder::new().has_headers(false).from_reader(csv.as_bytes());
+use super::CsvInput;
+pub fn csv_to_vec(csv_input: CsvInput) -> Vec<Vec<String>> {
+    let mut csv_reader = match csv_input {
+        CsvInput::Csv(csv) => csv::ReaderBuilder::new().has_headers(false).from_reader(csv.as_bytes()),
+        CsvInput::Reader(reader) => reader
+    };
     let mut csv = Vec::new();
     for record in csv_reader.records() {
         let record: csv::StringRecord = match record {
@@ -64,14 +68,14 @@ mod tests {
     #[test]
     fn parse_csv_one_line() {
         let expected = vec!(vec!("v1".to_owned(), "v2".to_owned(), "v3".to_owned()));
-        let csv = csv_to_vec("v1,v2,v3");
+        let csv = csv_to_vec(CsvInput::Csv("v1,v2,v3"));
         assert_eq!(expected, csv);
     }
 
     #[test]
     fn parse_csv_multiple_lines() {
         let expected = vec!(vec!("v4".to_owned(), "v34".to_owned(), "v7".to_owned()), vec!("v1".to_owned(), "v2".to_owned(), "v3".to_owned()));
-        let csv = csv_to_vec("v4,v34,v7\nv1,v2,v3");
+        let csv = csv_to_vec(CsvInput::Csv("v4,v34,v7\nv1,v2,v3"));
         assert_eq!(expected, csv);
     }
 

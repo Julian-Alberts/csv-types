@@ -5,7 +5,7 @@ mod matching_types;
 mod assert_matching_rows;
 mod vec;
 
-pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Error> {
+pub fn get_types(csv: CsvInput, type_list: types::TypeList, options: Options) -> Result<(Vec<String>, Vec<Vec<types::Type>>), Error> {
     
     let has_headers = options.has_headers;
     let max_threads = if let Some(threads) = options.max_threads {
@@ -30,7 +30,7 @@ pub fn get_types(csv: &str, type_list: types::TypeList, options: Options) -> Res
     Ok((headers, types))
 }
 
-pub fn assert_columns_match(csv: &str, expected_types: Vec<types::Type>, options: Options) -> Result<Vec<(usize, Vec<usize>)>, Error> {
+pub fn assert_columns_match(csv: CsvInput, expected_types: Vec<types::Type>, options: Options) -> Result<Vec<(usize, Vec<usize>)>, Error> {
     let has_headers = options.has_headers;
     let max_threads = if let Some(threads) = options.max_threads {
         if threads < 1 {
@@ -56,6 +56,13 @@ fn get_header(csv: &mut Vec<Vec<String>>) -> Vec<String> {
     let headers = csv[0].clone();
     csv.remove(0);
     headers
+}
+
+pub enum CsvInput<'a> {
+
+    Csv(&'a str),
+    Reader(csv::Reader<&'a[u8]>)
+
 }
 
 pub struct Options {
@@ -95,7 +102,7 @@ mod tests {
         let typed = types::Type::new("Td", r"^\d$");
         let types = types::TypeList::from(vec!(type1.clone(), type2.clone(), typed.clone()));
         let ret = match get_types(
-            "1,2,2,1\n2,2,1,1\n3,2,2,1", types, Options {has_headers: false,max_threads: Some(1)}) {
+            CsvInput::Csv("1,2,2,1\n2,2,1,1\n3,2,2,1"), types, Options {has_headers: false,max_threads: Some(1)}) {
             Ok(e) => e,
             Err(_) => {
                 assert!(false);
@@ -121,7 +128,7 @@ mod tests {
         let typed = types::Type::new("Td", r"^\d$");
         let types = types::TypeList::from(vec!(type1.clone(), type2.clone(), typed.clone()));
         let ret = match get_types(
-            "1,2,2,1\n2,2,1,1\n3,2,2,1", types, Options {has_headers: false,max_threads: Some(2)}) {
+            CsvInput::Csv("1,2,2,1\n2,2,1,1\n3,2,2,1"), types, Options {has_headers: false,max_threads: Some(2)}) {
             Ok(e) => e,
             Err(_) => {
                 assert!(false);
@@ -144,7 +151,7 @@ mod tests {
     fn get_types_thread_count_error() {
         let type_def = types::Type::new("test", "^.*$");
         let types = types::TypeList::from(vec!(type_def.clone()));
-        match get_types("", types, Options {
+        match get_types(CsvInput::Csv(""), types, Options {
             has_headers: false,
             max_threads: Some(0)
         }) {

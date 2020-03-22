@@ -37,7 +37,7 @@ fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Option
         expected_types.push(expected);
     }
     
-    let rows = match csvtypes::assert_columns_match(csv, expected_types, options) {
+    let rows = match csvtypes::assert_columns_match(csvtypes::CsvInput::Csv(csv), expected_types, options) {
         Ok(rows) => rows,
         Err(err) => {
             match err {
@@ -54,7 +54,7 @@ fn assert_types(csv: &str, type_list: types::TypeList, options: csvtypes::Option
 }
 
 fn matching_types(input: &str, type_list: types::TypeList, options: csvtypes::Options, machine_readable: bool) {
-    let (headers, types) = match csvtypes::get_types(input, type_list, options) {
+    let (headers, types) = match csvtypes::get_types(csvtypes::CsvInput::Csv(input), type_list, options) {
         Ok(r) => r,
         Err(err) => {
             match err {
