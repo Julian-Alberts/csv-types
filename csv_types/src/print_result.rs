@@ -1,4 +1,4 @@
-use csvtypes::types;
+use csv_types_sys::types;
 
 pub fn matching_types(types: &[Vec<types::Type>], headers: &[String], machine_readable: bool) {
     if machine_readable {

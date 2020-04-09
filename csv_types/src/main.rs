@@ -1,5 +1,5 @@
 use std::{io, io::prelude::*};
-use csvtypes;
+use csv_types_sys as csvtypes;
 use csvtypes::types;
 use argparse::{ArgumentParser, StoreTrue, StoreOption, Store};
 use std::fs;
