@@ -20,7 +20,9 @@ fn main() {
 
     for command in &sub_commands {
         if command.get_command() == sub_command {
-            command.run(Vec::from(&args[1..]));
+            let mut command_args = args;
+            command_args.remove(1);
+            command.run(command_args);
             break;
         }
     }

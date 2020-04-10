@@ -25,6 +25,7 @@ impl MatchingTypes {
     }
 
     fn setup_args(args: Vec<String>) -> (ConfigFileType, csv_types_sys::Options, bool) {
+        println!("{:#?}", args);
         let mut config_file_replace_default = String::new();
         let mut config_file = String::new();
         let mut options =  csv_types_sys::Options {
