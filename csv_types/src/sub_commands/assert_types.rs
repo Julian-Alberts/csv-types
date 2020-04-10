@@ -25,13 +25,13 @@ impl AssertTypes {
             expected_types.push(expected);
         }
         
-        let rows = match csv_types_sys::assert_columns_match(csv, expected_types, options) {
+        let rows = match csv_types_sys::assert_columns_match(csv_types_sys::CsvInput::Csv(csv), expected_types, options) {
             Ok(rows) => rows,
             Err(err) => {
                 match err {
-                    csv_types_sys::Err::Join => eprintln!("Could not join threads."),
-                    csv_types_sys::Err::ThreadCount => eprintln!("The thread count needs to be bigger than 0"),
-                    csv_types_sys::Err::ColumnCountNotMatching => eprintln!("The given number of types does not match the number of columns"),
+                    csv_types_sys::Error::Join => eprintln!("Could not join threads."),
+                    csv_types_sys::Error::ThreadCount => eprintln!("The thread count must be bigger than 0"),
+                    csv_types_sys::Error::ColumnCountNotMatching => eprintln!("The given number of types does not match the number of columns"),
                 }
                 process::exit(1);
             }

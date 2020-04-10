@@ -9,12 +9,12 @@ pub struct MatchingTypes;
 
 impl MatchingTypes {
     fn matching_types(input: &str, type_list: types::TypeList, options: csv_types_sys::Options, machine_readable: bool) {
-        let (headers, types) = match csv_types_sys::get_types(input, type_list, options) {
+        let (headers, types) = match csv_types_sys::get_types(csv_types_sys::CsvInput::Csv(input), type_list, options) {
             Ok(r) => r,
             Err(err) => {
                 match err {
-                    csv_types_sys::Err::Join => eprintln!("Could not join threads."),
-                    csv_types_sys::Err::ThreadCount => eprintln!("The thread count needs to be bigger than 0"),
+                    csv_types_sys::Error::Join => eprintln!("Could not join threads."),
+                    csv_types_sys::Error::ThreadCount => eprintln!("The thread count must be bigger than 0"),
                     _ => eprintln!("An unknown Error accoured")
                 }
                 process::exit(1);
