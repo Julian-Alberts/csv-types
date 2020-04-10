@@ -5,7 +5,11 @@ The problem has been to determin which types can be found in each column. For ex
 
 ## Usage
 
-### Parameter
+### Sub commands
+
+#### match
+Return all matching types 
+
 |short|long|example|description|
 |:-:|:-:|:-:|:-:|
 |-h|--help||Show this help message and exit|
@@ -13,21 +17,10 @@ The problem has been to determin which types can be found in each column. For ex
 |-c|--config-file|config.cfg|Add custom types from file|
 |-C|--config-file-replace-default|config.cfg|Same as --config-file but replaces default config|
 ||--max-threads|4|Maximal thread count|
-||--assert|"String,int,float"|Returns not matching rows and columns in pattern [row]:[column]:[column]...|
 |-m|||Machine readable format|
 
-### File with out headers
-csv_types < \[csv.file]
-
-### Config File
-Config files can contain new definitions for types
-[type name] [pattern]
-
-#### Example
-```
-float 
-```
-
+**Example:**
+`csv_types match --header --max-threads 2 --config-file ./types.conf`
 
 **Example output:** 
 <pre>
@@ -35,10 +28,8 @@ float
 |  float |        |  float |        |
 |        |        |    int |        |
 </pre>
-### File with headers
-csv_types --header < \[csv.file]
 
-**Example output:**
+**Example output with header:**
 <pre>
 |  col 1 |  col 2 |  col 3 |  col 4 |
 =====================================
@@ -46,3 +37,28 @@ csv_types --header < \[csv.file]
 |  float |        |  float |        |
 |        |        |    int |        |
 </pre>
+
+#### assert
+Check if types match columns
+
+|short|long|example|description|
+|:-:|:-:|:-:|:-:|
+|-h|--help||Show this help message and exit|
+||--header||File has header|
+|-c|--config-file|config.cfg|Add custom types from file|
+|-C|--config-file-replace-default|config.cfg|Same as --config-file but replaces default config|
+||--max-threads|4|Maximal thread count|
+|-m|||Machine readable format|
+
+**Example**
+`csv_types assert --header --max-threads 2 --config-file ./types.conf string,float,int`
+
+
+### Config File
+Config files can contain new definitions for types
+[type name] [pattern]
+
+#### Example
+```
+float [-+]?(?:(?:\d+(?:\.\d*)?)|\.\d+)
+```
