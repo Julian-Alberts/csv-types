@@ -2,7 +2,7 @@ use csv_types_sys;
 use csv_types_sys::types;
 use crate::print_result;
 use std::process;
-use crate::ConfigFileType;
+use crate::config::ConfigFileType;
 use argparse::{ArgumentParser, StoreTrue, StoreOption, Store};
 
 pub struct MatchingTypes;
@@ -80,7 +80,7 @@ impl super::SubCommand for MatchingTypes {
     fn run(&self, args: Vec<String>) {
         let (config_file, options, machine_readable) = Self::setup_args(args);
         let csv = crate::read_input_from_stdin();
-        let type_list = crate::get_config(config_file);
+        let type_list = crate::config::get_config(config_file);
         Self::matching_types(&csv, type_list, options, machine_readable);
     }
 

@@ -3,7 +3,7 @@ use csv_types_sys;
 use csv_types_sys::types;
 use crate::print_result;
 use std::process;
-use crate::ConfigFileType;
+use crate::config::ConfigFileType;
 use argparse::{ArgumentParser, StoreTrue, StoreOption, Store};
 
 
@@ -101,7 +101,7 @@ impl super::SubCommand for AssertTypes {
     fn run(&self, args: Vec<String>) {
         let (config_file, asserted_types, options, machine_readable) = Self::setup_args(args);
         let csv = crate::read_input_from_stdin();
-        let type_list = crate::get_config(config_file);
+        let type_list = crate::config::get_config(config_file);
         Self::assert_types(&csv, type_list, options, asserted_types, machine_readable);
     }
 
