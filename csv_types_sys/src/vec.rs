@@ -23,21 +23,21 @@ pub fn csv_to_vec(csv_input: CsvInput) -> Vec<Vec<String>> {
 }
 
 pub fn flip_vec(vec: &[Vec<String>]) -> Vec<Vec<String>> {
-    let mut fliped_vec = Vec::new();
+    let mut flipped_vec = Vec::new();
     for row in vec {
         for column_id in 0..row.len() {
-            let fliped_column = match fliped_vec.get_mut(column_id) {
+            let flipped_column = match flipped_vec.get_mut(column_id) {
                 Some(col) => col,
                 None => {
                     let column = Vec::new();
-                    fliped_vec.push(column);
-                    &mut fliped_vec[column_id]
+                    flipped_vec.push(column);
+                    &mut flipped_vec[column_id]
                 }
             };
-            fliped_column.push(row[column_id].clone());
+            flipped_column.push(row[column_id].clone());
         }
     }
-    fliped_vec
+    flipped_vec
 }
 
 pub fn split_vec_equal<T: Clone>(vec: &[T], max_threads: usize) -> Vec<Vec<T>> {
@@ -46,7 +46,7 @@ pub fn split_vec_equal<T: Clone>(vec: &[T], max_threads: usize) -> Vec<Vec<T>> {
         max_threads = 1;
     }
 
-    let mut splited = Vec::new();
+    let mut splitted = Vec::new();
     let mut end = 0;
     
     for i in 0..max_threads {
@@ -56,9 +56,9 @@ pub fn split_vec_equal<T: Clone>(vec: &[T], max_threads: usize) -> Vec<Vec<T>> {
             end += 1;
         }
 
-        splited.push(Vec::from(&vec[start..end]));
+        splitted.push(Vec::from(&vec[start..end]));
     }
-    splited
+    splitted
 }
 
 #[cfg(test)]
