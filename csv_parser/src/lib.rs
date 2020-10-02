@@ -1,4 +1,11 @@
 mod parse;
+mod types;
+mod csv;
+
+pub use parse::parse_from_reader;
+use std::collections::HashMap;
+
+
 
 #[cfg(test)]
 mod tests {
