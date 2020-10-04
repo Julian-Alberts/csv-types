@@ -3,25 +3,35 @@ use std::any::TypeId;
 use std::any::Any;
 
 pub struct CSV {
-    csv: HashMap<String, HashMap<TypeId, Vec<Box<dyn Any>>>>
+    csv: HashMap<String, Column>
 }
 
 impl CSV {
 
-    fn filter_by<T>(&self, column: &str, value: T) where T: 'static {
-        let column = self.csv.get(column);
+    fn get_header(&self) -> std::collections::hash_map::Keys<String, Column>{
+        self.csv.keys()
+    }
 
-        let column = match column {
-            Some(c) => c,
-            None => return
-        };
+    fn get_column(&self, column: &str) -> Option<&Column> {
+        match self.csv.get(column) {
+            Some(col) => Some(&col),
+            None => None
+        }
+    }
 
-        let typed_column = column.get(&TypeId::of::<T>());
-        let typed_column = match typed_column {
-            Some(tc) => tc,
-            None => return
-        };
+}
 
+pub struct Column {
+    column: HashMap<TypeId, Vec<Box<dyn Any>>>
+}
+
+impl Column {
+
+    pub fn get_values<'a, T>(&'a self) -> Option<Vec<&'a T>> where T: 'static{
+        let col = self.column.get(&TypeId::of::<T>())?;
+
+        // downcase_ref should have been checked before creation
+        Some(col.iter().map(|cell| cell.downcast_ref::<T>().unwrap()).collect::<Vec<&T>>())
     }
 
 }
