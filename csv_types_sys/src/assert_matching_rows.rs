@@ -1,11 +1,15 @@
 use super::types;
-use super::Error;
 use super::vec;
+use super::Error;
 use std::thread;
 
-pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &[types::Type], max_threads: usize) -> Result<Vec<(usize, Vec<usize>)>, Error> {
+pub fn assert_matching_rows(
+    csv: Vec<Vec<String>>,
+    expected_types: &[types::Type],
+    max_threads: usize,
+) -> Result<Vec<(usize, Vec<usize>)>, Error> {
     let flipped_csv = vec::flip_vec(&csv);
-    
+
     if flipped_csv.len() != expected_types.len() {
         return Err(Error::ColumnCountNotMatching);
     }
@@ -16,7 +20,10 @@ pub fn assert_matching_rows(csv: Vec<Vec<String>>, expected_types: &[types::Type
     check_for_type_match(col_sets, &expected_types)
 }
 
-fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<types::Type>]) -> Result<Vec<(usize, Vec<usize>)>, Error> {
+fn check_for_type_match(
+    col_sets: Vec<Vec<Vec<String>>>,
+    expected_types: &[Vec<types::Type>],
+) -> Result<Vec<(usize, Vec<usize>)>, Error> {
     let mut join_handlers = Vec::new();
     assert!(col_sets.len() == expected_types.len());
 
@@ -25,7 +32,7 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
         let expected_types = expected_types[col_set_index].clone();
 
         join_handlers.push(thread::spawn(move || {
-            let mut mismatched_rows = Vec::new(); 
+            let mut mismatched_rows = Vec::new();
             for (col_index, col) in col_set.iter().enumerate() {
                 for (row_index, value) in col.iter().enumerate() {
                     let type_def = &expected_types[col_index];
@@ -39,7 +46,6 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
                         mismatched_rows.push((row_index, col));
                     }
                 }
-                
             }
             mismatched_rows
         }));
@@ -48,7 +54,7 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
     for handler in join_handlers {
         let col_type_cols = match handler.join() {
             Ok(ctc) => ctc,
-            Err(_) => return Err(Error::Join)
+            Err(_) => return Err(Error::Join),
         };
         for col_type_col in col_type_cols {
             mismatched_rows.push(col_type_col);
@@ -62,7 +68,7 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
     while failed_assertion_index < mismatched_rows.len() {
         failed_assertion = match mismatched_rows.get(failed_assertion_index) {
             Some(a) => a,
-            None => continue
+            None => continue,
         };
         let row = failed_assertion.0;
         let mut failed_assertion_list = (row, Vec::new());
@@ -72,7 +78,7 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
             failed_assertion_index += 1;
             failed_assertion = match mismatched_rows.get(failed_assertion_index) {
                 Some(a) => a,
-                None => break
+                None => break,
             }
         }
         failed_assertions_joined.push(failed_assertion_list);
@@ -83,32 +89,42 @@ fn check_for_type_match(col_sets: Vec<Vec<Vec<String>>>, expected_types: &[Vec<t
 
 #[cfg(test)]
 mod tests {
+    use regex::Regex;
+
     use super::*;
 
     #[test]
     fn assert_matching_rows_column_count_not_matching() {
-        let csv = vec!(vec!(), vec!());
-        let expected_types = vec!(types::Type {name: String::from(""), pattern: String::from("")});
-        assert!(if let Err(err) = assert_matching_rows(csv, &expected_types, 1) {
-            if let Error::ColumnCountNotMatching = err {
-                true
+        let csv = vec![vec![], vec![]];
+        let expected_types = vec![types::Type {
+            name: String::from(""),
+            pattern: Regex::new("").unwrap(),
+        }];
+        assert!(
+            if let Err(err) = assert_matching_rows(csv, &expected_types, 1) {
+                if let Error::ColumnCountNotMatching = err {
+                    true
+                } else {
+                    false
+                }
             } else {
                 false
             }
-        } else {
-            false
-        });
+        );
     }
 
     #[test]
     fn assert_matching_rows_all_matching() {
-        let csv = vec!(vec!(String::from("w"),String::from("w"),String::from("1")), vec!(String::from("w"),String::from("w"),String::from("2")));
-        let expected_types = vec!(
-            types::Type::new("str", "^.*$"), 
-            types::Type::new("str", "^.*$"), 
-            types::Type::new("str", r"^\d$")
-        );
-        
+        let csv = vec![
+            vec![String::from("w"), String::from("w"), String::from("1")],
+            vec![String::from("w"), String::from("w"), String::from("2")],
+        ];
+        let expected_types = vec![
+            types::Type::new("str", "^.*$"),
+            types::Type::new("str", "^.*$"),
+            types::Type::new("str", r"^\d$"),
+        ];
+
         if let Ok(val) = assert_matching_rows(csv, &expected_types, 1) {
             assert_eq!(0, val.len());
         } else {
@@ -118,84 +134,84 @@ mod tests {
 
     #[test]
     fn check_for_type_match_all_lines_match() {
-        let col_sets = vec!(
-            vec!(vec!(String::from("w"))),
-            vec!(vec!(String::from("w"))),
-            vec!(vec!(String::from("w")))
-        );
-        
-        let expected_types = vec!(
-            vec!(types::Type::new("", ".*")),
-            vec!(types::Type::new("", ".*")),
-            vec!(types::Type::new("", ".*"))
-        );
+        let col_sets = vec![
+            vec![vec![String::from("w")]],
+            vec![vec![String::from("w")]],
+            vec![vec![String::from("w")]],
+        ];
+
+        let expected_types = vec![
+            vec![types::Type::new("", ".*")],
+            vec![types::Type::new("", ".*")],
+            vec![types::Type::new("", ".*")],
+        ];
 
         match check_for_type_match(col_sets, &expected_types) {
             Ok(e) => assert_eq!(0, e.len()),
-            _ => assert!(false)
+            _ => assert!(false),
         };
     }
 
     #[test]
     fn check_for_type_match_not_first_line() {
-        let col_sets = vec!(
-            vec!(vec!(String::from("w"))),
-            vec!(vec!(String::from("w"))),
-            vec!(vec!(String::from("w")))
-        );
-        
-        let expected_types = vec!(
-            vec!(types::Type::new("", r"\d")),
-            vec!(types::Type::new("", ".*")),
-            vec!(types::Type::new("", ".*")),
-        );
+        let col_sets = vec![
+            vec![vec![String::from("w")]],
+            vec![vec![String::from("w")]],
+            vec![vec![String::from("w")]],
+        ];
+
+        let expected_types = vec![
+            vec![types::Type::new("", r"\d")],
+            vec![types::Type::new("", ".*")],
+            vec![types::Type::new("", ".*")],
+        ];
 
         match check_for_type_match(col_sets, &expected_types) {
             Ok(e) => assert_eq!(&[(0, vec!(0))], &e[..]),
-            _ => assert!(false)
+            _ => assert!(false),
         };
     }
 
     #[test]
     fn check_for_type_match_not_first_second_row() {
         let col_sets = vec![
-            vec!(vec![String::from("2"), String::from("w")]),
-            vec!(vec!(String::from("w"), String::from("w"))),
-            vec!(vec!(String::from("w"), String::from("w")))
+            vec![vec![String::from("2"), String::from("w")]],
+            vec![vec![String::from("w"), String::from("w")]],
+            vec![vec![String::from("w"), String::from("w")]],
         ];
-        
-        let expected_types = vec!(
-            vec!(types::Type::new("", r"\d")),
-            vec!(types::Type::new("", ".*")),
-            vec!(types::Type::new("", ".*")),
-        );
+
+        let expected_types = vec![
+            vec![types::Type::new("", r"\d")],
+            vec![types::Type::new("", ".*")],
+            vec![types::Type::new("", ".*")],
+        ];
 
         match check_for_type_match(col_sets, &expected_types) {
             Ok(e) => assert_eq!(&[(1, vec!(0))], &e[..]),
-            _ => assert!(false)
+            _ => assert!(false),
         };
     }
 
     #[test]
     fn test() {
-        let col_sets = vec!(
-            vec!(vec!(String::from("w"), String::from("w"))),
-            vec!(vec!(String::from("2"), String::from("w"))),
-            vec!(vec!(String::from("w"), String::from("2")))
-        );
+        let col_sets = vec![
+            vec![vec![String::from("w"), String::from("w")]],
+            vec![vec![String::from("2"), String::from("w")]],
+            vec![vec![String::from("w"), String::from("2")]],
+        ];
 
-        let expected_types = vec!(
-            vec!(types::Type::new("string", ".*")),
-            vec!(types::Type::new("int", r"\d*")),
-            vec!(types::Type::new("int", r"\d*"))
-        );
+        let expected_types = vec![
+            vec![types::Type::new("string", ".*")],
+            vec![types::Type::new("int", r"\d*")],
+            vec![types::Type::new("int", r"\d*")],
+        ];
 
         match check_for_type_match(col_sets, &expected_types) {
             Ok(e) => {
                 assert!(e.contains(&(0, vec!(2))));
                 assert!(e.contains(&(1, vec!(1))));
-            },
-            _ => assert!(false)
+            }
+            _ => assert!(false),
         };
     }
 }
